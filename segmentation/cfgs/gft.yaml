@@ -1,0 +1,77 @@
+seed: 42
+optimizer_part: gft
+batch_size: 16
+epoch: 300
+learning_rate: 0.0002
+gpu: '0'
+log_dir: ./seg_gft
+npoint: 2048
+normal: false
+ckpts: ../pretrained/Point-MAE/pretrained.pth
+root: ../data/shapenetcore_partanno_segmentation_benchmark_v0_normal/
+
+model:
+  type: seg_gft
+  trans_dim: 384
+  depth: 12
+  drop_path_rate: 0.1
+  num_heads: 6
+  encoder_dims: 384
+  group_size: 32
+  num_group: 128
+  extract_layers:
+  - 2
+  - 5
+  - 8
+  - 11
+
+  # EdgeConv configs
+  edge_conv:
+    k: 20
+    in_dim: 384
+    feat_dims:
+    - 64
+    - 64
+    - 64
+    - 64
+    emb_dim: 256
+  
+  # Cross Attention configs
+  cross_attention:
+    cross_idx:
+    - 0
+    - 3
+    - 6
+    - 9
+    cross_attn_heads: 2
+    cross_attn_dim: 32
+    alpha: 1.0
+    cross_attn_drop_rate: 0.0
+
+  # Prompt configs
+  prompt_len: 50
+  decoder:
+    in_channels: ${model.trans_dim}
+    hidden_dim: 128
+    num_heads: 4
+    mlp_ratio: 8
+    num_obj: 16
+    obj_dim: 64
+    num_cls: 50
+    use_gft: true
+
+optimizer:
+  type: AdamW
+  lr: 0.0002
+  weight_decay: 0.05
+
+scheduler:
+  type: CosineLRScheduler
+  t_initial: ${epoch}
+  t_mul: 1
+  lr_min: 1.0e-06
+  decay_rate: 0.1
+  warmup_lr_init: 1.0e-06
+  warmup_t: 10
+  cycle_limit: 1
+  t_in_epochs: true
